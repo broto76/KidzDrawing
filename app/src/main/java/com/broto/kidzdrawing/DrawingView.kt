@@ -19,6 +19,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private var canvas: Canvas? = null
 
     private val mPaths = ArrayList<CustomPath>()
+    private val mUndoPaths = ArrayList<CustomPath>()
 
     init {
         setupDrawing()
@@ -73,6 +74,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         when(event?.action) {
             MotionEvent.ACTION_DOWN -> {
                 Log.d("DrawingClass","onTouchEvent->  ACTION_DOWN")
+                mUndoPaths.clear()
                 mDrawPath!!.color = color
                 mDrawPath!!.brushThickness = mBrushSize
 
@@ -112,6 +114,20 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     fun setColorForBrush(newColor: String) {
         color = Color.parseColor(newColor)
         mDrawPaint!!.color = color
+    }
+
+    fun undo() {
+        if (mPaths.isNotEmpty()) {
+            mUndoPaths.add(mPaths.removeAt(mPaths.lastIndex))
+            invalidate()
+        }
+    }
+
+    fun redo() {
+        if (mUndoPaths.isNotEmpty()) {
+            mPaths.add(mUndoPaths.removeAt(mUndoPaths.lastIndex))
+            invalidate()
+        }
     }
 
     internal inner class CustomPath(var color: Int,

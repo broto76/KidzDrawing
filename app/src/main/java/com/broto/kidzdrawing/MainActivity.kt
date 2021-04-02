@@ -47,6 +47,14 @@ class MainActivity : AppCompatActivity() {
                 requestStoragePermission()
             }
         }
+
+        ib_undo.setOnClickListener {
+            drawing_view.undo()
+        }
+
+        ib_redo.setOnClickListener {
+            drawing_view.redo()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
