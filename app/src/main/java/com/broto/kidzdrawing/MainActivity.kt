@@ -77,6 +77,12 @@ class MainActivity : AppCompatActivity() {
                 requestStoragePermission()
             }
         }
+
+        ib_clear.setOnClickListener {
+            drawing_view.clearDrawing()
+            iv_background.setImageDrawable(Color.WHITE.toDrawable())
+            drawing_view.invalidate()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -110,6 +116,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showBrushSizeChooserDialog() {
+        // Deprecated
         val brushDialog = Dialog(this)
         brushDialog.setContentView(R.layout.dialog_brush_size)
         brushDialog.setTitle("Brush Size: ")
