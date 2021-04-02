@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <TextView
+        android:padding="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Brush Size"
+        android:layout_gravity="center"
+        android:textColor="#001947"
+        android:textSize="20sp"
+        />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <androidx.appcompat.widget.AppCompatSeekBar
+            android:id="@+id/size_slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="70"
+            android:padding="5dp"
+            android:min="5"
+            android:layout_weight="9"
+            android:progress="20" />
+
+        <TextView
+            android:id="@+id/tv_size"
+            android:padding="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="20"
+            android:textSize="15sp"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

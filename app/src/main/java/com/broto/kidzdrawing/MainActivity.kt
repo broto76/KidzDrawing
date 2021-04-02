@@ -13,8 +13,10 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,6 +24,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.get
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_brush_size.*
+import kotlinx.android.synthetic.main.dialog_brush_size_slider.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -30,6 +33,7 @@ import java.lang.Exception
 class MainActivity : AppCompatActivity() {
 
     private var mImageButtonCurrentPaint: ImageButton? = null
+    private var mBrushSize = 20
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +48,8 @@ class MainActivity : AppCompatActivity() {
         )
 
         ib_brush.setOnClickListener{
-            showBrushSizeChooserDialog()
+            //showBrushSizeChooserDialog()
+            showBrushSizeSliderDialog()
         }
 
         ib_gallery.setOnClickListener {
@@ -123,6 +128,34 @@ class MainActivity : AppCompatActivity() {
             drawing_view.setSizeForBrush(30.toFloat())
             brushDialog.dismiss()
         }
+
+        brushDialog.show()
+    }
+
+    private fun showBrushSizeSliderDialog() {
+        val brushDialog = Dialog(this)
+        brushDialog.setContentView(R.layout.dialog_brush_size_slider)
+        brushDialog.setTitle("Brush Size: ")
+        brushDialog.size_slider.progress = mBrushSize
+        brushDialog.tv_size.text = mBrushSize.toString()
+
+        brushDialog.size_slider.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.d("Broto", "Progress: $progress")
+                mBrushSize = progress
+                brushDialog.tv_size.text = progress.toString()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                brushDialog.dismiss()
+                drawing_view.setSizeForBrush(mBrushSize.toFloat())
+            }
+
+        })
 
         brushDialog.show()
     }
