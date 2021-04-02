@@ -5,6 +5,10 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -16,6 +20,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_brush_size.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
@@ -55,6 +62,14 @@ class MainActivity : AppCompatActivity() {
         ib_redo.setOnClickListener {
             drawing_view.redo()
         }
+
+        ib_save.setOnClickListener {
+            if (isReadStorageAllowed()) {
+                BitmapAsyncTask(getBitmapFromView(drawing_view_container)).execute()
+            } else {
+                requestStoragePermission()
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -74,9 +89,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        if (hasFocus) {
+            // Make the Activity go Full Screen
+            window.decorView.apply {
+                systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            }
+            supportActionBar?.hide()
+        }
+        super.onWindowFocusChanged(hasFocus)
     }
 
     private fun showBrushSizeChooserDialog() {
@@ -155,6 +178,87 @@ class MainActivity : AppCompatActivity() {
 
         return result == PackageManager.PERMISSION_GRANTED
     }
+
+    private fun getBitmapFromView(view: View): Bitmap {
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val bgDrawable = view.background
+        if (bgDrawable != null) {
+            bgDrawable.draw(canvas)
+        } else {
+            canvas.drawColor(Color.WHITE)
+        }
+
+        view.draw(canvas)
+
+        return bitmap
+    }
+
+    private inner class BitmapAsyncTask(val mBitmap: Bitmap):
+        AsyncTask<Any, Void, String>()
+    {
+        private lateinit var mProgressDialog: Dialog
+
+        override fun onPreExecute() {
+            showProgressDialog()
+            super.onPreExecute()
+        }
+
+        override fun doInBackground(vararg params: Any?): String {
+            var result = ""
+
+            if (mBitmap != null) {
+                try {
+
+                    val bytes = ByteArrayOutputStream()
+                    mBitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+
+                    val file = File(externalCacheDir?.absoluteFile.toString() +
+                            File.separator + "KidzDrawing_" +
+                            System.currentTimeMillis()/1000 + ".png")
+
+                    val fileOutputStream = FileOutputStream(file)
+                    fileOutputStream.write(bytes.toByteArray())
+                    fileOutputStream.close()
+
+                    result = file.absolutePath
+
+                } catch (e: Exception) {
+                    result = ""
+                    e.printStackTrace()
+                }
+            }
+
+            return result
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            if (result!!.isNotEmpty()) {
+                Toast.makeText(this@MainActivity, "File created: $result",
+                    Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, "File not saved",
+                    Toast.LENGTH_SHORT).show()
+            }
+            hideProgressDialog()
+        }
+
+        private fun showProgressDialog() {
+            mProgressDialog = Dialog(this@MainActivity)
+            mProgressDialog.setContentView(R.layout.dialog_custom_progress)
+            mProgressDialog.show()
+        }
+
+        private fun hideProgressDialog() {
+            if (mProgressDialog.isShowing) {
+                mProgressDialog.dismiss()
+            }
+        }
+
+    }
+
     companion object {
         private const val STORAGE_PERMISSION_CODE = 1
         private const val GALLERY = 2
