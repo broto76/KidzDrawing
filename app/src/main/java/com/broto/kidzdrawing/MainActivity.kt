@@ -13,6 +13,8 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.ImageButton
@@ -21,8 +23,10 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.text.set
 import androidx.core.view.get
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.color_picker_popup.*
 import kotlinx.android.synthetic.main.dialog_brush_size.*
 import kotlinx.android.synthetic.main.dialog_brush_size_slider.*
 import java.io.ByteArrayOutputStream
@@ -34,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     private var mImageButtonCurrentPaint: ImageButton? = null
     private var mBrushSize = 20
+    private var mColor = "#000000"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,11 +46,11 @@ class MainActivity : AppCompatActivity() {
 
         drawing_view.setSizeForBrush(22.toFloat())
 
-        mImageButtonCurrentPaint = ll_paint_colors[1] as ImageButton
-        mImageButtonCurrentPaint!!.setImageDrawable(
-            ContextCompat.getDrawable(this,
-                R.drawable.pallet_pressed)
-        )
+//        mImageButtonCurrentPaint = ll_paint_colors[1] as ImageButton
+//        mImageButtonCurrentPaint!!.setImageDrawable(
+//            ContextCompat.getDrawable(this,
+//                R.drawable.pallet_pressed)
+//        )
 
         ib_brush.setOnClickListener{
             //showBrushSizeChooserDialog()
@@ -62,8 +67,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        ib_undo.setOnClickListener {
-            drawing_view.undo()
+
+        ib_color_picker.setOnClickListener {
+            showColorPickerDialog()
         }
 
         ib_redo.setOnClickListener {
@@ -78,10 +84,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        ib_clear.setOnClickListener {
+        ib_clear.setOnLongClickListener {
+            // On long click clear the canvas
             drawing_view.clearDrawing()
             iv_background.setImageDrawable(Color.WHITE.toDrawable())
             drawing_view.invalidate()
+            return@setOnLongClickListener true
+        }
+
+        ib_clear.setOnClickListener {
+            // On normal click just undo
+            drawing_view.undo()
         }
     }
 
@@ -167,23 +180,152 @@ class MainActivity : AppCompatActivity() {
         brushDialog.show()
     }
 
-    fun paintClicked(view: View) {
-        if (view != mImageButtonCurrentPaint) {
-            val imageButton = view as ImageButton
-            val colorTag = imageButton.tag.toString()
-            drawing_view.setColorForBrush(colorTag)
-            imageButton.setImageDrawable(
-                ContextCompat.getDrawable(this,
-                    R.drawable.pallet_pressed)
-            )
+    private fun showColorPickerDialog() {
 
-            mImageButtonCurrentPaint!!.setImageDrawable(
-                ContextCompat.getDrawable(this,
-                    R.drawable.pallet_normal)
-            )
-            mImageButtonCurrentPaint = imageButton
+        var red = mColor.substring(1,3)
+        var green = mColor.substring(3,5)
+        var blue = mColor.substring(5)
+
+        Log.d(TAG, "Red: $red")
+        Log.d(TAG, "Green: $green")
+        Log.d(TAG, "Blue: $blue")
+
+
+        val colorPicker = Dialog(this)
+        colorPicker.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        colorPicker.setContentView(R.layout.color_picker_popup)
+
+        colorPicker.rl_color_view.background = Color.parseColor(mColor).toDrawable()
+
+        colorPicker.et_color_value.setText(mColor)
+        colorPicker.et_color_value.addTextChangedListener(object: TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+                if (s.toString().length == 7) {
+                    // Check value is within FFFFFF
+                    //Log.d("Broto","Color: ${s.toString()} int: ${java.lang.Long.parseLong(s.toString().substring(1), 16)}")
+                    try {
+                        colorPicker.rl_color_view.background = Color.parseColor(s.toString()).toDrawable()
+                        mColor = s.toString()
+
+                        // Update the seekbars
+//                        colorPicker.seekbar_red.progress = Integer.parseInt(mColor.substring(1,3),16)
+//                        colorPicker.seekbar_green.progress = Integer.parseInt(mColor.substring(3,5),16)
+//                        colorPicker.seekbar_blue.progress = Integer.parseInt(mColor.substring(5),16)
+
+                        colorPicker.bt_pick_color.visibility = View.VISIBLE
+                    } catch (e: IllegalArgumentException) {
+                        mColor = "NA"
+                        colorPicker.bt_pick_color.visibility = View.INVISIBLE
+                        Log.e(TAG, "Invalid Color.")
+                        e.printStackTrace()
+                    }
+                } else {
+                    colorPicker.bt_pick_color.visibility = View.INVISIBLE
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+            }
+
+        })
+
+        colorPicker.seekbar_red.progress = Integer.parseInt(red,16)
+        colorPicker.seekbar_red.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val newColor = "#" +
+                        progress.toString(16).padStart(2,'0') +
+                        colorPicker.seekbar_green.progress.toString(16).padStart(2,'0') +
+                        colorPicker.seekbar_blue.progress.toString(16).padStart(2, '0')
+                colorPicker.et_color_value.setText(newColor)
+                Log.d(TAG, "From Red, progress: $progress hexprogress: ${progress.toString(16).padStart(2,'0')} newColor: $newColor")
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        colorPicker.seekbar_green.progress = Integer.parseInt(green,16)
+        colorPicker.seekbar_green.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val newColor = "#" +
+                        colorPicker.seekbar_red.progress.toString(16).padStart(2,'0') +
+                        progress.toString(16).padStart(2,'0') +
+                        colorPicker.seekbar_blue.progress.toString(16).padStart(2, '0')
+                colorPicker.et_color_value.setText(newColor)
+                Log.d(TAG, "From Green, progress: $progress hexprogress: ${progress.toString(16).padStart(2,'0')} newColor: $newColor")
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        colorPicker.seekbar_blue.progress = Integer.parseInt(blue,16)
+        colorPicker.seekbar_blue.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val newColor = "#" +
+                        colorPicker.seekbar_red.progress.toString(16).padStart(2,'0') +
+                        colorPicker.seekbar_green.progress.toString(16).padStart(2,'0') +
+                        progress.toString(16).padStart(2,'0')
+                colorPicker.et_color_value.setText(newColor)
+                Log.d(TAG, "From Blue, progress: $progress hexprogress: ${progress.toString(16).padStart(2,'0')} newColor: $newColor")
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        colorPicker.bt_pick_color.setOnClickListener {
+            if (mColor != "NA") {
+                drawing_view.setColorForBrush(mColor)
+                ib_color_picker.setBackgroundColor(Color.parseColor(mColor))
+                colorPicker.dismiss()
+            }
         }
+
+        colorPicker.setCancelable(false)
+        colorPicker.show()
     }
+
+//    fun paintClicked(view: View) {
+//        if (view != mImageButtonCurrentPaint) {
+//            val imageButton = view as ImageButton
+//            val colorTag = imageButton.tag.toString()
+//            drawing_view.setColorForBrush(colorTag)
+//            imageButton.setImageDrawable(
+//                ContextCompat.getDrawable(this,
+//                    R.drawable.pallet_pressed)
+//            )
+//
+//            mImageButtonCurrentPaint!!.setImageDrawable(
+//                ContextCompat.getDrawable(this,
+//                    R.drawable.pallet_normal)
+//            )
+//            mImageButtonCurrentPaint = imageButton
+//        }
+//    }
 
     private fun requestStoragePermission() {
 
@@ -313,5 +455,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val STORAGE_PERMISSION_CODE = 1
         private const val GALLERY = 2
+        private const val TAG = "MainActivity"
     }
 }

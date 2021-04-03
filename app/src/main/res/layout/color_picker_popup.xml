@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="5dp"
+    app:cardCornerRadius="10dp"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="Select Color"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="#001947"
+            android:textSize="20sp" />
+
+        <RelativeLayout
+            android:id="@+id/rl_color_view"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="vertical"
+            android:background="#000000"
+            android:layout_marginBottom="20dp"
+            >
+
+            <EditText
+                android:id="@+id/et_color_value"
+                android:layout_marginTop="50dp"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/pallet_color_value"
+                android:text="#000000"
+                android:maxLength="7"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingRight="20dp"
+                android:paddingLeft="20dp"
+                android:lines="1"
+                android:gravity="center"
+                android:textAlignment="center" />
+
+        </RelativeLayout>
+
+        <SeekBar
+            android:id="@+id/seekbar_red"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:thumbTint="#FF0000"
+            android:min="0"
+            android:max="255"
+            android:progress="0"
+            />
+
+        <SeekBar
+            android:id="@+id/seekbar_green"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:thumbTint="#00FF00"
+            android:min="0"
+            android:max="255"
+            android:progress="0"
+            />
+
+        <SeekBar
+            android:id="@+id/seekbar_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:thumbTint="#0000FF"
+            android:min="0"
+            android:max="255"
+            android:progress="0"
+            />
+
+        <Button
+            android:id="@+id/bt_pick_color"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/pallet_button"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:text="Pick this color"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:textColor="@color/white"
+            />
+
+    </LinearLayout>
+
+
+</androidx.cardview.widget.CardView>
