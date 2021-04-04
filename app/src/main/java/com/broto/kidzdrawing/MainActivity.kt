@@ -177,6 +177,7 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        brushDialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         brushDialog.show()
     }
 
